@@ -1,0 +1,547 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+:root {
+  --c-primary: #1a7f5e;
+  --c-primary-light: #e1f5ee;
+  --c-accent: #e05c2a;
+  --c-accent-light: #faece7;
+}
+.app { max-width: 680px; padding: 0; }
+.top-bar { display: flex; align-items: center; justify-content: space-between; padding: 1rem 0 0.75rem; border-bottom: 0.5px solid var(--color-border-tertiary); margin-bottom: 1rem; }
+.app-title { font-size: 18px; font-weight: 500; color: var(--color-text-primary); display: flex; align-items: center; gap: 8px; }
+.nav-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+.pill { padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500; cursor: pointer; border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); transition: all 0.15s; }
+.pill.active { background: var(--c-primary); border-color: var(--c-primary); color: #fff; }
+.pill:hover:not(.active) { background: var(--color-background-secondary); color: var(--color-text-primary); }
+.section { display: none; }
+.section.active { display: block; }
+.people-bar { display: flex; gap: 8px; margin-bottom: 1.25rem; align-items: center; }
+.avatar-btn { width: 38px; height: 38px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 500; transition: all 0.15s; }
+.avatar-btn.active { border-color: var(--c-primary); }
+.add-person-btn { width: 38px; height: 38px; border-radius: 50%; border: 0.5px dashed var(--color-border-secondary); background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--color-text-secondary); font-size: 20px; transition: all 0.15s; }
+.add-person-btn:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+.card-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-group.full { grid-column: 1 / -1; }
+label { font-size: 12px; color: var(--color-text-secondary); }
+input, select, textarea { width: 100%; font-size: 14px; border-radius: var(--border-radius-md); }
+textarea { resize: vertical; min-height: 70px; }
+.btn-primary { background: var(--c-primary); color: #fff; border: none; padding: 9px 20px; border-radius: var(--border-radius-md); font-size: 14px; font-weight: 500; cursor: pointer; width: 100%; margin-top: 6px; transition: opacity 0.15s; }
+.btn-primary:hover { opacity: 0.88; }
+.btn-danger { background: transparent; color: #e24b4a; border: 0.5px solid #e24b4a; padding: 5px 10px; border-radius: var(--border-radius-md); font-size: 12px; cursor: pointer; }
+.metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 1rem; }
+.metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 0.875rem 1rem; }
+.metric-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.metric-value { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+.metric-value span { font-size: 12px; font-weight: 400; color: var(--color-text-secondary); }
+.metric-sub { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
+.metric-sub.pos { color: #1D9E75; }
+.metric-sub.neg { color: #e24b4a; }
+.log-list { display: flex; flex-direction: column; gap: 8px; }
+.log-item { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: flex-start; }
+.log-item-left { flex: 1; }
+.log-date { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 2px; }
+.log-weight { font-size: 16px; font-weight: 500; color: var(--color-text-primary); }
+.log-train { font-size: 13px; color: var(--color-text-secondary); margin-top: 3px; }
+.log-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.tag { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--c-primary-light); color: var(--c-primary); font-weight: 500; }
+.tag.acc { background: var(--c-accent-light); color: var(--c-accent); }
+.empty-state { text-align: center; padding: 2rem; color: var(--color-text-tertiary); font-size: 14px; }
+.chart-wrap { position: relative; width: 100%; height: 240px; }
+.bmi-bar { height: 12px; border-radius: 6px; background: linear-gradient(to right, #378ADD 0%, #1D9E75 25%, #639922 50%, #BA7517 75%, #e24b4a 100%); position: relative; margin: 8px 0 4px; }
+.bmi-marker { position: absolute; width: 14px; height: 14px; border-radius: 50%; background: var(--color-background-primary); border: 2px solid var(--color-text-primary); top: -1px; transform: translateX(-50%); transition: left 0.4s; }
+.bmi-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--color-text-tertiary); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; display: flex; align-items: center; justify-content: center; }
+.modal { background: var(--color-background-primary); border-radius: var(--border-radius-lg); padding: 1.25rem; width: 90%; max-width: 340px; border: 0.5px solid var(--color-border-secondary); }
+.modal-title { font-size: 16px; font-weight: 500; margin-bottom: 1rem; color: var(--color-text-primary); }
+.modal-actions { display: flex; gap: 8px; margin-top: 1rem; }
+.btn-sec { flex: 1; background: transparent; border: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); padding: 8px; border-radius: var(--border-radius-md); font-size: 14px; cursor: pointer; }
+.btn-ok { flex: 1; background: var(--c-primary); border: none; color: #fff; padding: 8px; border-radius: var(--border-radius-md); font-size: 14px; font-weight: 500; cursor: pointer; }
+.color-picker { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.color-dot { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; }
+.color-dot.selected { border-color: var(--color-text-primary); transform: scale(1.15); }
+.streak-row { display: flex; gap: 6px; margin-bottom: 0.5rem; flex-wrap: wrap; }
+.streak-dot { width: 24px; height: 24px; border-radius: 4px; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); display: flex; align-items: center; justify-content: center; font-size: 10px; }
+.streak-dot.done { background: #e1f5ee; border-color: #9FE1CB; color: #0F6E56; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
+.section-title { font-size: 16px; font-weight: 500; color: var(--color-text-primary); }
+</style>
+
+<div class="app">
+  <h2 class="sr-only">Aplicação de registo de peso e treinos</h2>
+  <div class="top-bar">
+    <div class="app-title"><i class="ti ti-heartbeat" aria-hidden="true" style="font-size:20px;color:var(--c-primary)"></i>FitTrack</div>
+    <div class="people-bar" id="peopleBar"></div>
+  </div>
+  <div class="nav-pills">
+    <button class="pill active" onclick="switchTab('registo')"><i class="ti ti-plus" style="font-size:12px"></i> Registar</button>
+    <button class="pill" onclick="switchTab('evolucao')"><i class="ti ti-chart-line" style="font-size:12px"></i> Evolução</button>
+    <button class="pill" onclick="switchTab('historico')"><i class="ti ti-list" style="font-size:12px"></i> Histórico</button>
+    <button class="pill" onclick="switchTab('estatisticas')"><i class="ti ti-trophy" style="font-size:12px"></i> Stats</button>
+  </div>
+
+  <!-- REGISTAR -->
+  <div class="section active" id="sec-registo">
+    <div class="card">
+      <div class="card-title">Novo registo</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Data</label>
+          <input type="date" id="inp-date">
+        </div>
+        <div class="form-group">
+          <label>Peso (kg)</label>
+          <input type="number" id="inp-weight" step="0.1" min="30" max="300" placeholder="ex: 78.5">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Tipo de treino</label>
+          <select id="inp-traintype">
+            <option value="">Sem treino hoje</option>
+            <option value="Musculação">Musculação</option>
+            <option value="Cardio">Cardio</option>
+            <option value="HIIT">HIIT</option>
+            <option value="Corrida">Corrida</option>
+            <option value="Natação">Natação</option>
+            <option value="Ciclismo">Ciclismo</option>
+            <option value="Yoga">Yoga</option>
+            <option value="Calistenia">Calistenia</option>
+            <option value="Desporto">Desporto de equipa</option>
+            <option value="Caminhada">Caminhada</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Duração (min)</label>
+          <input type="number" id="inp-duration" min="0" max="600" placeholder="ex: 60">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Humor</label>
+          <select id="inp-mood">
+            <option value="">—</option>
+            <option value="😄 Ótimo">😄 Ótimo</option>
+            <option value="😊 Bem">😊 Bem</option>
+            <option value="😐 Normal">😐 Normal</option>
+            <option value="😴 Cansado">😴 Cansado</option>
+            <option value="😤 Stressado">😤 Stressado</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Horas de sono</label>
+          <input type="number" id="inp-sleep" step="0.5" min="0" max="24" placeholder="ex: 7.5">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group full">
+          <label>Notas do treino</label>
+          <textarea id="inp-notes" placeholder="Ex: peito e ombros, 4 séries de supino..."></textarea>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="saveEntry()"><i class="ti ti-device-floppy" style="font-size:14px"></i> Guardar registo</button>
+    </div>
+  </div>
+
+  <!-- EVOLUÇÃO -->
+  <div class="section" id="sec-evolucao">
+    <div class="metric-grid" id="statsGrid"></div>
+    <div class="card">
+      <div class="section-header">
+        <div class="card-title" style="margin:0">Evolução do peso</div>
+        <select id="chartRange" onchange="renderChart()" style="width:auto;font-size:12px;padding:4px 8px">
+          <option value="7">7 dias</option>
+          <option value="30" selected>30 dias</option>
+          <option value="90">3 meses</option>
+          <option value="999">Tudo</option>
+        </select>
+      </div>
+      <div class="chart-wrap" style="margin-top:0.75rem"><canvas id="weightChart" role="img" aria-label="Gráfico de evolução do peso">Evolução do peso ao longo do tempo.</canvas></div>
+    </div>
+    <div class="card" id="bmiCard"></div>
+    <div class="card">
+      <div class="card-title">Atividade semanal (últimas 4 semanas)</div>
+      <div id="streakView"></div>
+    </div>
+  </div>
+
+  <!-- HISTÓRICO -->
+  <div class="section" id="sec-historico">
+    <div class="card">
+      <div class="section-header">
+        <div class="section-title">Histórico</div>
+        <select id="filterTrain" onchange="renderHistory()" style="width:auto;font-size:12px;padding:4px 8px">
+          <option value="">Todos</option>
+          <option value="Musculação">Musculação</option>
+          <option value="Cardio">Cardio</option>
+          <option value="HIIT">HIIT</option>
+          <option value="Corrida">Corrida</option>
+          <option value="Natação">Natação</option>
+          <option value="Yoga">Yoga</option>
+          <option value="Caminhada">Caminhada</option>
+        </select>
+      </div>
+      <div class="log-list" id="logList"></div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="section" id="sec-estatisticas">
+    <div class="card">
+      <div class="card-title">Distribuição de treinos</div>
+      <div class="chart-wrap" style="height:220px"><canvas id="trainChart" role="img" aria-label="Distribuição tipos de treino">Distribuição de tipos de treino.</canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Peso vs treinos</div>
+      <div class="chart-wrap" style="height:200px"><canvas id="dualChart" role="img" aria-label="Peso e dias de treino por semana">Peso e dias de treino por semana.</canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOVA PESSOA -->
+<div class="modal-overlay" id="personModal" style="display:none">
+  <div class="modal">
+    <div class="modal-title">Adicionar pessoa</div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>Nome</label>
+      <input type="text" id="pName" placeholder="ex: Mariana">
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label>Altura (cm)</label>
+      <input type="number" id="pHeight" placeholder="ex: 165">
+    </div>
+    <div class="form-group">
+      <label>Cor</label>
+      <div class="color-picker" id="colorPicker"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-sec" onclick="closeModal()">Cancelar</button>
+      <button class="btn-ok" onclick="addPerson()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const COLORS = ['#1D9E75','#378ADD','#D85A30','#D4537E','#7F77DD','#BA7517','#639922'];
+const CNAMES = ['Verde','Azul','Laranja','Rosa','Roxo','Âmbar','Lima'];
+let state = JSON.parse(localStorage.getItem('fittrack_v2') || 'null') || {
+  people: [
+    { id: 'p1', name: 'Eu', color: '#1D9E75', height: 175 },
+    { id: 'p2', name: 'Mulher', color: '#D4537E', height: 165 }
+  ],
+  entries: [],
+  activePerson: 'p1'
+};
+let wChart = null, tChart = null, dChart = null;
+let selColor = COLORS[0];
+
+function save() { localStorage.setItem('fittrack_v2', JSON.stringify(state)); }
+
+function switchTab(t) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  document.getElementById('sec-' + t).classList.add('active');
+  event.target.closest('.pill').classList.add('active');
+  if (t === 'evolucao') { renderStats(); renderChart(); renderBMI(); renderStreak(); }
+  if (t === 'historico') renderHistory();
+  if (t === 'estatisticas') renderStatCharts();
+}
+
+function renderPeople() {
+  const bar = document.getElementById('peopleBar');
+  bar.innerHTML = '';
+  state.people.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'avatar-btn' + (p.id === state.activePerson ? ' active' : '');
+    btn.style.background = p.color + '22';
+    btn.style.color = p.color;
+    btn.title = p.name;
+    btn.textContent = p.name.slice(0, 2).toUpperCase();
+    btn.onclick = () => { state.activePerson = p.id; save(); renderAll(); };
+    bar.appendChild(btn);
+  });
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-person-btn';
+  addBtn.innerHTML = '<i class="ti ti-plus" aria-hidden="true"></i>';
+  addBtn.title = 'Adicionar pessoa';
+  addBtn.onclick = openModal;
+  bar.appendChild(addBtn);
+}
+
+function openModal() {
+  selColor = COLORS[0];
+  document.getElementById('pName').value = '';
+  document.getElementById('pHeight').value = '';
+  const cp = document.getElementById('colorPicker');
+  cp.innerHTML = '';
+  COLORS.forEach((c, i) => {
+    const d = document.createElement('div');
+    d.className = 'color-dot' + (i === 0 ? ' selected' : '');
+    d.style.background = c;
+    d.title = CNAMES[i];
+    d.onclick = () => { selColor = c; document.querySelectorAll('.color-dot').forEach(x => x.classList.remove('selected')); d.classList.add('selected'); };
+    cp.appendChild(d);
+  });
+  document.getElementById('personModal').style.display = 'flex';
+}
+function closeModal() { document.getElementById('personModal').style.display = 'none'; }
+function addPerson() {
+  const name = document.getElementById('pName').value.trim();
+  const height = parseInt(document.getElementById('pHeight').value) || 170;
+  if (!name) return;
+  state.people.push({ id: 'p' + Date.now(), name, color: selColor, height });
+  state.activePerson = state.people[state.people.length - 1].id;
+  save(); closeModal(); renderAll();
+}
+
+function saveEntry() {
+  const date = document.getElementById('inp-date').value;
+  const weight = parseFloat(document.getElementById('inp-weight').value);
+  if (!date || !weight) { alert('Por favor preenche a data e o peso.'); return; }
+  const entry = {
+    id: Date.now(),
+    personId: state.activePerson,
+    date,
+    weight,
+    trainType: document.getElementById('inp-traintype').value,
+    duration: parseInt(document.getElementById('inp-duration').value) || 0,
+    mood: document.getElementById('inp-mood').value,
+    sleep: parseFloat(document.getElementById('inp-sleep').value) || 0,
+    notes: document.getElementById('inp-notes').value.trim()
+  };
+  state.entries.push(entry);
+  save();
+  document.getElementById('inp-weight').value = '';
+  document.getElementById('inp-traintype').value = '';
+  document.getElementById('inp-duration').value = '';
+  document.getElementById('inp-mood').value = '';
+  document.getElementById('inp-sleep').value = '';
+  document.getElementById('inp-notes').value = '';
+  showToast('Registo guardado!');
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1D9E75;color:#fff;padding:10px 20px;border-radius:20px;font-size:14px;font-weight:500;z-index:999;';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2000);
+}
+
+function getPersonEntries() {
+  return state.entries.filter(e => e.personId === state.activePerson).sort((a,b) => a.date.localeCompare(b.date));
+}
+function getActivePerson() { return state.people.find(p => p.id === state.activePerson) || state.people[0]; }
+
+function renderStats() {
+  const entries = getPersonEntries();
+  const p = getActivePerson();
+  const grid = document.getElementById('statsGrid');
+  if (!entries.length) { grid.innerHTML = '<div class="empty-state">Sem dados ainda</div>'; return; }
+  const weights = entries.map(e => e.weight);
+  const cur = weights[weights.length - 1];
+  const ini = weights[0];
+  const diff = cur - ini;
+  const min = Math.min(...weights);
+  const max = Math.max(...weights);
+  const trained = entries.filter(e => e.trainType).length;
+  const bmi = p.height ? (cur / ((p.height/100) ** 2)) : null;
+  grid.innerHTML = `
+    <div class="metric"><div class="metric-label">Peso atual</div><div class="metric-value">${cur.toFixed(1)}<span> kg</span></div><div class="metric-sub ${diff < 0 ? 'pos' : diff > 0 ? 'neg' : ''}">${diff >= 0 ? '+' : ''}${diff.toFixed(1)} kg total</div></div>
+    <div class="metric"><div class="metric-label">Mínimo</div><div class="metric-value">${min.toFixed(1)}<span> kg</span></div><div class="metric-sub">${entries.find(e=>e.weight===min)?.date || ''}</div></div>
+    <div class="metric"><div class="metric-label">Máximo</div><div class="metric-value">${max.toFixed(1)}<span> kg</span></div></div>
+    <div class="metric"><div class="metric-label">Treinos</div><div class="metric-value">${trained}</div><div class="metric-sub">${entries.length} registos</div></div>
+    ${bmi ? `<div class="metric"><div class="metric-label">IMC</div><div class="metric-value">${bmi.toFixed(1)}</div><div class="metric-sub">${bmi<18.5?'Abaixo do peso':bmi<25?'Normal':bmi<30?'Excesso de peso':'Obesidade'}</div></div>` : ''}
+  `;
+}
+
+function renderChart() {
+  const entries = getPersonEntries();
+  const p = getActivePerson();
+  const range = parseInt(document.getElementById('chartRange').value);
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - range);
+  const filtered = entries.filter(e => range >= 999 || new Date(e.date) >= cutoff);
+  if (wChart) wChart.destroy();
+  const ctx = document.getElementById('weightChart').getContext('2d');
+  if (!filtered.length) { ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height); return; }
+  wChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: filtered.map(e => e.date.slice(5)),
+      datasets: [{
+        label: 'Peso',
+        data: filtered.map(e => e.weight),
+        borderColor: p.color || '#1D9E75',
+        backgroundColor: (p.color || '#1D9E75') + '18',
+        borderWidth: 2,
+        pointRadius: 4,
+        pointBackgroundColor: p.color || '#1D9E75',
+        fill: true,
+        tension: 0.35
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { ticks: { callback: v => v + ' kg', font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.1)' } },
+        x: { ticks: { font: { size: 10 }, maxRotation: 45, autoSkip: true } }
+      }
+    }
+  });
+}
+
+function renderBMI() {
+  const entries = getPersonEntries();
+  const p = getActivePerson();
+  const card = document.getElementById('bmiCard');
+  if (!entries.length || !p.height) { card.innerHTML = '<div class="card-title">IMC</div><div style="font-size:13px;color:var(--color-text-tertiary)">Adiciona a tua altura nas configurações da pessoa.</div>'; return; }
+  const w = entries[entries.length-1].weight;
+  const bmi = w / ((p.height/100)**2);
+  const pct = Math.min(Math.max((bmi - 10) / (45 - 10) * 100, 0), 100);
+  const label = bmi<18.5?'Abaixo do peso':bmi<25?'Normal':bmi<30?'Excesso de peso':'Obesidade';
+  card.innerHTML = `<div class="card-title">Índice de massa corporal</div>
+    <div style="font-size:24px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px">${bmi.toFixed(1)} <span style="font-size:14px;font-weight:400;color:var(--color-text-secondary)">${label}</span></div>
+    <div class="bmi-bar"><div class="bmi-marker" style="left:${pct}%"></div></div>
+    <div class="bmi-labels"><span>Baixo</span><span>Normal</span><span>Excesso</span><span>Obesidade</span></div>`;
+}
+
+function renderStreak() {
+  const entries = getPersonEntries();
+  const sv = document.getElementById('streakView');
+  const today = new Date();
+  const days = [];
+  for (let i = 27; i >= 0; i--) {
+    const d = new Date(today); d.setDate(d.getDate() - i);
+    const ds = d.toISOString().slice(0,10);
+    const e = entries.find(x => x.date === ds);
+    days.push({ ds, trained: e && e.trainType });
+  }
+  let html = '<div class="streak-row">';
+  days.forEach((d, i) => {
+    if (i > 0 && i % 7 === 0) html += '</div><div class="streak-row">';
+    const label = d.ds.slice(8);
+    html += `<div class="streak-dot ${d.trained ? 'done' : ''}" title="${d.ds}">${label}</div>`;
+  });
+  html += '</div>';
+  const streak = days.slice().reverse().findIndex(d => !d.trained);
+  html += `<p style="font-size:12px;color:var(--color-text-secondary);margin-top:8px">${streak > 0 ? `🔥 ${streak} dias consecutivos de treino` : streak === 0 ? '— Sem treino hoje ainda' : '— Começa já hoje!'}</p>`;
+  sv.innerHTML = html;
+}
+
+function renderHistory() {
+  const entries = getPersonEntries().slice().reverse();
+  const filter = document.getElementById('filterTrain').value;
+  const filtered = filter ? entries.filter(e => e.trainType === filter) : entries;
+  const list = document.getElementById('logList');
+  if (!filtered.length) { list.innerHTML = '<div class="empty-state">Sem registos</div>'; return; }
+  list.innerHTML = filtered.map(e => `
+    <div class="log-item">
+      <div class="log-item-left">
+        <div class="log-date">${formatDate(e.date)}</div>
+        <div class="log-weight">${e.weight.toFixed(1)} kg</div>
+        <div class="log-tags">
+          ${e.trainType ? `<span class="tag">${e.trainType}${e.duration ? ` ${e.duration}min` : ''}</span>` : ''}
+          ${e.mood ? `<span class="tag acc">${e.mood}</span>` : ''}
+          ${e.sleep ? `<span class="tag"><i class="ti ti-moon" style="font-size:10px"></i> ${e.sleep}h</span>` : ''}
+        </div>
+        ${e.notes ? `<div class="log-train">${e.notes}</div>` : ''}
+      </div>
+      <button class="btn-danger" onclick="deleteEntry(${e.id})"><i class="ti ti-trash" style="font-size:12px"></i></button>
+    </div>`).join('');
+}
+
+function deleteEntry(id) {
+  if (!confirm('Apagar este registo?')) return;
+  state.entries = state.entries.filter(e => e.id !== id);
+  save(); renderHistory();
+}
+
+function renderStatCharts() {
+  const entries = getPersonEntries();
+  if (tChart) tChart.destroy();
+  if (dChart) dChart.destroy();
+  const types = {};
+  entries.forEach(e => { if (e.trainType) types[e.trainType] = (types[e.trainType]||0)+1; });
+  if (Object.keys(types).length) {
+    const ctx = document.getElementById('trainChart').getContext('2d');
+    tChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(types),
+        datasets: [{ data: Object.values(types), backgroundColor: COLORS.slice(0, Object.keys(types).length), borderWidth: 0 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { size: 12 }, padding: 12 } } } }
+    });
+  }
+  const weeks = {};
+  entries.forEach(e => {
+    const d = new Date(e.date); const w = getWeek(d);
+    if (!weeks[w]) weeks[w] = { weight: [], trained: 0 };
+    weeks[w].weight.push(e.weight);
+    if (e.trainType) weeks[w].trained++;
+  });
+  const wkeys = Object.keys(weeks).slice(-8);
+  const ctx2 = document.getElementById('dualChart').getContext('2d');
+  const p = getActivePerson();
+  dChart = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: wkeys.map(w => 'S' + w.slice(-2)),
+      datasets: [
+        { label: 'Treinos', data: wkeys.map(w => weeks[w].trained), backgroundColor: (p.color||'#1D9E75')+'66', yAxisID: 'y1' },
+        { label: 'Peso médio', data: wkeys.map(w => +(weeks[w].weight.reduce((a,b)=>a+b,0)/weeks[w].weight.length).toFixed(1)), type: 'line', borderColor: p.color||'#1D9E75', backgroundColor: 'transparent', pointRadius: 4, yAxisID: 'y2', tension: 0.3 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y1: { position: 'left', ticks: { font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.1)' } },
+        y2: { position: 'right', ticks: { callback: v => v+'kg', font: { size: 11 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+function getWeek(d) {
+  const s = new Date(d.getFullYear(), 0, 1);
+  return String(d.getFullYear()) + String(Math.ceil((((d - s) / 86400000) + s.getDay() + 1) / 7)).padStart(2,'0');
+}
+
+function formatDate(ds) {
+  const [y,m,d] = ds.split('-');
+  return `${d}/${m}/${y}`;
+}
+
+function renderAll() { renderPeople(); renderStats(); renderChart(); renderBMI(); renderStreak(); renderHistory(); }
+
+// Init
+document.getElementById('inp-date').valueAsDate = new Date();
+renderPeople();
+
+// Demo data if empty
+if (!state.entries.length) {
+  const today = new Date();
+  const demo = [
+    { w: 82.0, t: 'Musculação', d: 60, m: '😊 Bem', s: 7.5 },
+    { w: 81.7, t: 'Cardio', d: 40, m: '😄 Ótimo', s: 8 },
+    { w: 81.5, t: '', d: 0, m: '😐 Normal', s: 6 },
+    { w: 81.2, t: 'HIIT', d: 35, m: '😄 Ótimo', s: 7 },
+    { w: 81.8, t: 'Musculação', d: 65, m: '😊 Bem', s: 7.5 },
+    { w: 80.9, t: 'Corrida', d: 45, m: '😊 Bem', s: 8 },
+    { w: 81.1, t: '', d: 0, m: '😴 Cansado', s: 6.5 },
+    { w: 80.5, t: 'Musculação', d: 70, m: '😄 Ótimo', s: 8 }
+  ];
+  demo.forEach((e, i) => {
+    const date = new Date(today); date.setDate(date.getDate() - (demo.length - 1 - i));
+    state.entries.push({ id: Date.now() + i, personId: 'p1', date: date.toISOString().slice(0,10), weight: e.w, trainType: e.t, duration: e.d, mood: e.m, sleep: e.s, notes: '' });
+  });
+  save();
+}
+</script>
